@@ -69,8 +69,6 @@ jobs:
               run: ls -al
             - name: Make the linux binary executable
               run: chmod +x random-number-generator-linux
-            - name: Install dependencies
-              run: bun install
             - name: Mutiline Step by Step
               run: |
                 ./random-number-generator-linux
