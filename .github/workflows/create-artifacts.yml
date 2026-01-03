@@ -1,0 +1,80 @@
+name: create-artifacts
+
+on: 
+    push:
+        branches:
+            - main
+    
+    workflow_dispatch:
+    
+jobs:
+    test:
+        name: Test Code
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                    bun-version: latest
+            - name: Bun installieren
+              run: bun install
+            - name: Test with different seeds
+              run: bun run random-number-generator.js
+                   bun run random-number-generator.js "test-seed"
+                   bun run random-number-generator.js 1906
+            
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: test-report
+                path: report.txt
+
+
+    build:
+        name: Build Executable
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                bun-version: latest
+            - name: Bun installieren
+              run: bun install
+            - name: Create executables
+              run: bun run build
+            - name: List the executables created
+              run: ls -la random-number-generator-*
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: random-number-generator-executables
+                path: ./random-number-generator-*
+
+
+    test-linux:
+        name: Test Linux Executable
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Download the artifact
+              uses: actions/download-artifact@v4
+            - name: Make the linux binary executable
+              run: chmod +x random-number-generator-linux
+            - name: Install dependencies
+              run: bun install
+            - name: Mutiline Step by Step
+              run: |
+                ./random-number-generator-linux
+                ./random-number-generator-linux "test-seed"
+                ./random-number-generator-linux 1906
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: linux-test-report
+                path: report.txt
